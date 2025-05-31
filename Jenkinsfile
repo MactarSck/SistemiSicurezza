@@ -88,6 +88,9 @@ pipeline {
                 '''
             }
         }
+        tools {
+                 maven 'Maven'
+            }
 
         stage('Build con Maven') {
             steps {
