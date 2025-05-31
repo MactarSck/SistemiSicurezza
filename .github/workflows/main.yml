@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   ci:
-    name: Pipeline CI/CD
+    name: Pipeline Security
     runs-on: ubuntu-latest
     services:
       mysql:
