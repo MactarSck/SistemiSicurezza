@@ -2,10 +2,9 @@ pipeline {
     agent any
 
     environment {
-    JAVA_HOME = 'C:\\Program Files\\Java\\jdk-21'
-    PATH = "${JAVA_HOME}\\bin;${env.PATH}"
+        JAVA_HOME = 'C:\\Program Files\\Java\\jdk-21'
+        PATH = "${JAVA_HOME}\\bin;${env.PATH}"
     }
-
 
     tools {
         maven 'Maven'
@@ -18,11 +17,15 @@ pipeline {
             }
         }
 
-        // RIMOSSE le fasi Start MySQL, Attendi MySQL e Inizializza DB
-
         stage('Build con Maven') {
             steps {
                 bat 'mvn clean install -B'
+            }
+        }
+
+        stage('Archivia Artefatti') {
+            steps {
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
 
@@ -37,14 +40,11 @@ pipeline {
         stage('Dependency Check') {
             steps {
                 echo 'Salto Dependency Check perché richiede Docker'
-                // Se vuoi fare Dependency Check senza Docker, devi installare localmente l'OWASP Dependency Check CLI
-                // oppure rimuovere completamente questa fase
             }
         }
 
         stage('Pubblica Report') {
             steps {
-                // Se non generi report di Dependency Check, puoi togliere o adattare questa fase
                 echo 'Nessun report da archiviare'
             }
         }
