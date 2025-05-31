@@ -129,10 +129,11 @@ pipeline {
         }
     }
 
-    post {
-        always {
-            sh 'docker stop mysql-db || true'
-            sh 'docker rm mysql-db || true'
+   post {
+    always {
+        node {
+            echo 'Pulizia container MySQL'
+            sh 'docker rm -f mysql || true'
         }
     }
 }
