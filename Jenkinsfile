@@ -33,7 +33,9 @@ pipeline {
 
         stage('Dependency Check') {
             steps {
-                bat 'mvn org.owasp:dependency-check-maven:check -Dformat=HTML'
+                withCredentials([string(credentialsId: 'NVD_API_KEY', variable: 'NVD_API_KEY')]) {
+                    bat 'mvn org.owasp:dependency-check-maven:check -Dformat=HTML -Ddependency-check.nvd.apiKey=%NVD_API_KEY%'
+                }
             }
         }
 
