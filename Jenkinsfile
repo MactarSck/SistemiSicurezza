@@ -1,7 +1,5 @@
 pipeline {
-    agent {
-        label 'docker' // 
-    }
+    agent any
 
     environment {
         MYSQL_ROOT_PASSWORD = 'root'
@@ -129,11 +127,10 @@ pipeline {
         }
     }
 
-   post {
-    always {
-        node {
+    post {
+        always {
             echo 'Pulizia container MySQL'
-            sh 'docker rm -f mysql || true'
+            sh 'docker rm -f mysql-db || true'
         }
     }
 }
