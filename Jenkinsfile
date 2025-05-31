@@ -2,11 +2,10 @@ pipeline {
     agent any
 
     environment {
-        // Se usi un DB esterno, puoi impostare qui le variabili di connessione
-        //MYSQL_ROOT_PASSWORD = 'root'
-        //MYSQL_DATABASE = 'onlinebookstore'
-        JAVA_HOME = 'C:\\Program Files\\Java\\jdk...' // aggiorna se serve
+    JAVA_HOME = 'C:\\Program Files\\Java\\jdk-21'
+    PATH = "${JAVA_HOME}\\bin;${env.PATH}"
     }
+
 
     tools {
         maven 'Maven'
