@@ -23,12 +23,6 @@ pipeline {
             }
         }
 
-        stage('Archivia Artefatti') {
-            steps {
-                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-            }
-        }
-
         stage('Analisi SonarQube') {
             steps {
                 withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
@@ -39,13 +33,13 @@ pipeline {
 
         stage('Dependency Check') {
             steps {
-                echo 'Salto Dependency Check perché richiede Docker'
+                bat 'mvn org.owasp:dependency-check-maven:check -Dformat=HTML'
             }
         }
 
-        stage('Pubblica Report') {
+        stage('Archivia Report') {
             steps {
-                echo 'Nessun report da archiviare'
+                archiveArtifacts artifacts: 'target/dependency-check-report.html', fingerprint: true
             }
         }
     }
