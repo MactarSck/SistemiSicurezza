@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         JAVA_HOME = 'C:\\Program Files\\Java\\jdk-21'
-        PATH      = "${JAVA_HOME}\\bin;${env.PATH}"
+        PATH = "${JAVA_HOME}\\bin;${env.PATH}"
     }
 
     tools {
@@ -33,7 +33,9 @@ pipeline {
 
         stage('Dependency Check') {
             steps {
-                bat 'mvn org.owasp:dependency-check-maven:check -Dformat=HTML -Ddependency-check.updateOnly=true'
+                withCredentials([string(credentialsId: 'NVD_API_KEY', variable: 'NVD_API_KEY')]) {
+                    bat 'mvn org.owasp:dependency-check-maven:check -Dformat=HTML -Ddependency-check.skipUpdate=true -Ddependency-check.nvd.apiKey=%NVD_API_KEY%'
+                }
             }
         }
 
