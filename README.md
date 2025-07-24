@@ -148,6 +148,8 @@ Job: dependency-check
 
 Gli artefatti generati dalla build (come file .war) o dai report di scansione vengono salvati all’interno della pipeline, così da poter essere scaricati e analizzati successivamente, anche manualmente.
 
+
+## 3 Analisi delle vulnerabilità
  
 
 
