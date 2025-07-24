@@ -1,4 +1,4 @@
-# Progetto di Sicurezza dei Sistemi e Privacy AA 2024/2025
+#  Progetto di Sicurezza dei Sistemi e Privacy AA 2024/2025
 
 ## 1 Presentazione
 Questo progetto mira a realizzare una pipeline CI/CD sicura (SSDLC - Secure Software Development Life Cycle) applicata a un’applicazione Java. Il repository utilizzato è onlinebookstore, che simula un sistema di gestione per una libreria online.
