@@ -23,7 +23,7 @@ jobs:
       - name: Attendi MySQL
         run: |
           for i in {1..30}; do
-            if mysqladmin ping -h127.0.0.1 -uroot -proot --silent; then
+            if mysqladmin ping -h127.0.0.1 -uroot -"$MYSQL_ROOT_PASSWORD" --silent; then
               echo "MySQL pronto!"
               break
             fi
