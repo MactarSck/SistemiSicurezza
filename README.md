@@ -48,3 +48,115 @@ Artifact Archiving: per salvare gli artefatti di build (file WAR) e i report di 
 Controllo su servizi esterni: tramite l’utilizzo di un servizio MySQL Dockerizzato per garantire l’inizializzazione e la preparazione dell’ambiente di test.
 
 L’integrazione di questi strumenti consente di garantire una maggiore affidabilità e sicurezza del software attraverso l’automatizzazione di analisi statiche e controlli sulle dipendenze, migliorando la qualità generale del progetto e facilitando un processo di sviluppo più sicuro e controllato.
+
+## CODICE PIPELINE
+
+### Stage 1 – Check-out del codice
+ ```yaml
+ - name: Checkout codice
+   uses: actions/checkout@v3
+
+ ```
+Presente in tutti i job: build, sonar, dependency-check
+
+Questa fase recupera il codice sorgente dal repository GitHub affinché i job successivi (build, analisi, ecc.) possano operare sui file più aggiornati del progetto.
+
+### Stage 2 – Build
+ ```yaml
+ - name: Configura JDK 17 (Temurin)
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: temurin
+
+      - name: Cache dipendenze Maven
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Build progetto (Maven)
+        run: mvn clean install -B
+
+ ```
+Job: build
+
+In questa fase il codice Java viene compilato usando Maven. Prima viene installata la JDK 17, poi viene attivata una cache per velocizzare le build future, infine viene eseguita la compilazione con mvn clean install.
+
+### Stage 3 – Scansione SAST (Static Application Security Testing)
+
+ ```yaml
+- name: Cache pacchetti SonarQube
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Esegui SonarQube Scanner
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=MactarSck_SistemiSicurezza
+
+ ```
+Usa SonarQube per eseguire un’analisi statica del codice sorgente. Individua problemi come codice duplicato, vulnerabilità, bug logici, e fornisce metriche di qualità. Serve per prevenire vulnerabilità direttamente nel codice scritto dagli sviluppatori.
+
+###  Stage 4 e 5 – Scansione SCA (Software Composition Analysis) - Check dei gate di qualità e sicurezza
+
+ ```yaml
+ - name: Esegui Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        continue-on-error: true
+        env:
+          JAVA_HOME: /opt/jdk
+        with:
+          project: onlinebookstore
+          path: '.'
+          format: HTML
+          out: reports
+          args: >
+            --failOnCVSS 7
+            --enableRetired
+
+```
+Job: dependency-check
+
+Questa fase esegue la scansione delle librerie di terze parti usate nel progetto (dipendenze) per verificare la presenza di vulnerabilità note (CVEs). Il parametro --failOnCVSS 7 consente di fallire la build se vengono trovate vulnerabilità con severità ≥ 7, ma continue-on-error impedisce che blocchi la pipeline.
+
+###  Stage 6 – Archiviazione locale
+
+```yaml
+- name: Carica artefatto WAR
+  uses: actions/upload-artifact@v4
+  with:
+    name: artefatto-app
+    path: target/*.war
+
+```
+ Job: build
+
+ ```yaml
+- name: Carica report Dependency Check
+  uses: actions/upload-artifact@v4
+  with:
+    name: Report-Dependency-Check
+    path: reports
+
+```
+Job: dependency-check
+
+Gli artefatti generati dalla build (come file .war) o dai report di scansione vengono salvati all’interno della pipeline, così da poter essere scaricati e analizzati successivamente, anche manualmente.
+
+ 
+
+
+
+
+
+
+
+
+
+
+
