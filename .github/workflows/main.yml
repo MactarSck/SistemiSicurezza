@@ -134,7 +134,7 @@ jobs:
           distribution: temurin
 
       - name: Esegui Dependency Check
-        uses: dependency-check/cli-action@v1.0.0
+        uses: dependency-check/Dependency-Check_Action@main
         with:
           project: onlinebookstore
           path: '.'                # cartella da analizzare
