@@ -119,23 +119,14 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=MactarSck_SistemiSicurezza
 
-      - name: Run Dependency Check
-        id: dependency-check
-        uses: dependency-check/Dependency-Check_Action@main
-        env:
-          JAVA_HOME: /opt/jdk
-        with:
-          project: onlinebookstore
-          path: '.'
-          format: HTML
-          out: reports
-          args: >
-            --failOnCVSS 10
+  dependency-check:
+    name: OWASP Dependency Check
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout codice
+        uses: actions/checkout@v4
 
-      - name: Upload Dependency Check report
-        if: always()
-        uses: actions/upload-artifact@v4
+      - name: Configura JDK 17 (Temurin)
+        uses: actions/setup-java@v3
         with:
-          name: Dependency-Check-Report
-          path: reports
-          
