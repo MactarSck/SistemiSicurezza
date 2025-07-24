@@ -6,45 +6,34 @@ jobs:
   setup-db:
     name: Setup Database
     runs-on: ubuntu-latest
-    env:
-      MYSQL_HOST: 127.0.0.1
-      MYSQL_USER: root
-      MYSQL_PASSWORD: root
     services:
       mysql:
         image: mysql:5.7
         env:
-          MYSQL_ROOT_PASSWORD: ${{ env.MYSQL_PASSWORD }}
+          MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: onlinebookstore
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -h ${{ env.MYSQL_HOST }} --silent"
+          --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
     steps:
       - name: Attendi MySQL
         run: |
-          set -e
-          max_attempts=30
-          attempt=1
-          until mysqladmin ping -h${{ env.MYSQL_HOST }} -u${{ env.MYSQL_USER }} -p${{ env.MYSQL_PASSWORD }} --silent; do
-            if [ $attempt -ge $max_attempts ]; then
-              echo "MySQL non risponde dopo $attempt tentativi, esco."
-              exit 1
+          for i in {1..30}; do
+            if mysqladmin ping -h127.0.0.1 -uroot -proot --silent; then
+              echo "MySQL pronto!"
+              break
             fi
-            echo "Attendo MySQL ($attempt/$max_attempts)..."
-            attempt=$((attempt+1))
+            echo "Attendo MySQL..."
             sleep 2
           done
-          echo "MySQL pronto!"
 
       - name: Inizializza database con dati casuali
         run: |
-          set -e
-          # Creo tabelle books e users, inserisco dati demo casuali
-          mysql -h${{ env.MYSQL_HOST }} -u${{ env.MYSQL_USER }} -p${{ env.MYSQL_PASSWORD }} <<EOF
+          mysql -h127.0.0.1 -uroot -proot <<EOF
           USE onlinebookstore;
           CREATE TABLE IF NOT EXISTS books(
             barcode VARCHAR(100) PRIMARY KEY,
@@ -78,8 +67,6 @@ jobs:
     name: Build Project
     runs-on: ubuntu-latest
     needs: setup-db
-    env:
-      MAVEN_CACHE_DIR: ~/.m2/repository
     steps:
       - name: Checkout codice
         uses: actions/checkout@v3
@@ -93,7 +80,7 @@ jobs:
       - name: Cache dipendenze Maven
         uses: actions/cache@v4
         with:
-          path: ${{ env.MAVEN_CACHE_DIR }}
+          path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
@@ -110,8 +97,6 @@ jobs:
     name: SonarQube Analysis
     runs-on: ubuntu-latest
     needs: build
-    env:
-      MAVEN_CACHE_DIR: ~/.m2/repository
     steps:
       - name: Checkout codice
         uses: actions/checkout@v3
@@ -121,13 +106,6 @@ jobs:
         with:
           java-version: 17
           distribution: temurin
-
-      - name: Cache dipendenze Maven
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.MAVEN_CACHE_DIR }}
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
 
       - name: Cache pacchetti SonarQube
         uses: actions/cache@v4
@@ -148,12 +126,6 @@ jobs:
     steps:
       - name: Checkout codice
         uses: actions/checkout@v3
-
-      - name: Configura JDK 17 (Temurin)
-        uses: actions/setup-java@v3
-        with:
-          java-version: 17
-          distribution: temurin
 
       - name: Esegui Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
