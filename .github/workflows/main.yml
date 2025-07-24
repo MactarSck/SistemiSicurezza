@@ -120,20 +120,28 @@ jobs:
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=MactarSck_SistemiSicurezza
 
   dependency-check:
+    name: Dependency Check
     runs-on: ubuntu-latest
-
+    needs: build
     steps:
-     - name: Checkout repository
-       uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-     - name: Carica report Dependency Check
-       uses: actions/upload-artifact@v4
-       with:
-        name: Report-Dependency-Check
-        path: reports
+      - name: Scarica artefatto WAR
+        uses: actions/download-artifact@v4
+        with:
+          name: artefatto-app
 
-     - name: Carica artefatto WAR
-       uses: actions/upload-artifact@v4
-       with:
-        name: artefatto-app
-        path: target/*.war
+      - name: Esegui OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: "OnlineBookstore"
+          path: "."
+          format: "HTML"
+          out: "reports"
+
+      - name: Carica report Dependency Check
+        uses: actions/upload-artifact@v4
+        with:
+          name: Report-Dependency-Check
+          path: reports
