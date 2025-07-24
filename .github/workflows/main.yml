@@ -3,15 +3,14 @@ name: Pipeline Control Security
 on: [push]
 
 jobs:
-  build:
-    name: Build and initialize DB
+  ci:
+    name: Pipeline Security
     runs-on: ubuntu-latest
-
     services:
       mysql:
         image: mysql:5.7
         env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+          MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: onlinebookstore
         ports:
           - 3306:3306
@@ -38,10 +37,17 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
+      - name: Cache pacchetti SonarQube
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
       - name: Attendi MySQL
         run: |
           for i in {1..30}; do
-            if mysqladmin ping -h127.0.0.1 -uroot -p${{ secrets.TEST_DB_PASSWORD }} --silent; then
+            if mysqladmin ping -h127.0.0.1 -uroot -proot --silent; then
               echo "MySQL pronto!"
               break
             fi
@@ -51,7 +57,7 @@ jobs:
 
       - name: Inizializza database
         run: |
-          mysql -h127.0.0.1 -uroot -p${{ secrets.TEST_DB_PASSWORD }} <<EOF
+          mysql -h127.0.0.1 -uroot -proot <<EOF
           USE onlinebookstore;
           CREATE TABLE IF NOT EXISTS books(
             barcode VARCHAR(100) PRIMARY KEY,
@@ -70,90 +76,33 @@ jobs:
             mailid VARCHAR(100),
             usertype INT
           );
-          INSERT INTO books VALUES
-            ('9781491950296', 'Clean Architecture', 'Robert C. Martin', 380, 10),
-            ('9780596007126', 'Head First Design Patterns', 'Eric Freeman & Elisabeth Freeman', 420, 6);
-
-          INSERT INTO users VALUES
-            ('mario', 'mypass', 'Mario', 'Rossi', 'Milano', '3341122334', 'mario.rossi@email.com', 1),
-            ('lucia', 'secret123', 'Lucia', 'Bianchi', 'Roma', '3399988776', 'lucia.bianchi@email.com', 2);
-
+          INSERT INTO books VALUES(
+            '9780134190563',
+            'The Go Programming Language',
+            'Alan A. A. Donovan and Brian W. Kernighan',
+            400,
+            8
+          );
+          INSERT INTO users VALUES(
+            'shashi',
+            'shashi',
+            'Shashi',
+            'Raj',
+            'Bihar',
+            '1236547089',
+            'shashi@gmail.com',
+            2
+          );
           COMMIT;
           EOF
 
       - name: Build progetto (Maven)
         run: mvn clean install -B
 
-      - name: Upload unverified artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: unverified-java-build-artifact
-          path: |
-            target/
-            pom.xml
-
-  sast:
-    name: Analisi statica (SonarQube)
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-      - name: Checkout codice
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Configura JDK 17 (Temurin)
-        uses: actions/setup-java@v3
-        with:
-          java-version: 17
-          distribution: temurin
-
-      - name: Cache SonarQube
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-
-      - name: Cache Maven
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-
       - name: Esegui SonarQube Scanner
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-            -Dsonar.projectKey=MactarSck_SistemiSicurezza
-
-  sca:
-    name: Analisi dipendenze (Dependency Check)
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-      - name: Checkout codice
-        uses: actions/checkout@v3
-
-      - name: Configura JDK 17 (Temurin)
-        uses: actions/setup-java@v3
-        with:
-          java-version: 17
-          distribution: temurin
-
-      - name: Cache Maven
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-
-      - name: Build senza test
-        run: mvn -B package -DskipTests
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=MactarSck_SistemiSicurezza
 
       - name: Esegui Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
@@ -174,18 +123,6 @@ jobs:
         with:
           name: Report-Dependency-Check
           path: reports
-
-  package:
-    name: Caricamento artefatto finale
-    runs-on: ubuntu-latest
-    needs: [sast, sca]
-
-    steps:
-      - name: Scarica artefatto buildato
-        uses: actions/download-artifact@v4
-        with:
-          name: unverified-java-build-artifact
-          path: .
 
       - name: Carica artefatto WAR
         uses: actions/upload-artifact@v4
