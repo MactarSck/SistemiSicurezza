@@ -20,7 +20,7 @@ Slack: per notificare automaticamente l’esito della pipeline al gruppo di svil
 La pipeline di CI/CD è stata implementata utilizzando GitHub Actions, scelta che ha permesso di automatizzare l’intero processo di integrazione e delivery direttamente all’interno del repository GitHub.
 
 
-La pipeline si articola in quattro job principali:
+La pipeline si articola in cinque job principali:
 
 #### Setup Database: 
 configura un servizio MySQL tramite container Docker integrato in GitHub Actions, attende la disponibilità del database e lo inizializza con le tabelle necessarie e dati di test casuali. Questo garantisce un ambiente di test consistente e ripetibile per le fasi successive.
