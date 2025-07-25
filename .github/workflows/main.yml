@@ -117,7 +117,7 @@ jobs:
       - name: Esegui SonarQube Scanner
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=MactarSck_SistemiSicurezza
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=MactarSck_SistemiSicurezza -Dsonar.qualitygate.wait=true
 
   dependency-check:
     name: Dependency Check
@@ -145,7 +145,6 @@ jobs:
 
       - name: Esegui Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
-        continue-on-error: true
         env:
           JAVA_HOME: /opt/jdk
         with:
@@ -167,6 +166,7 @@ jobs:
     name: Notifica Slack
     runs-on: ubuntu-latest
     needs: [dependency-check, sonar]
+    if: always()
     steps:
       - name: Invia notifica a Slack
         env:
