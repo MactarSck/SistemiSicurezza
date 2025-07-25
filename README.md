@@ -13,6 +13,8 @@ OWASP Dependency-Check: per effettuare un’analisi SCA (Software Composition An
 
 Caching: per migliorare l’efficienza della pipeline tramite il caching delle dipendenze Maven e dei pacchetti di SonarQube;
 
+Slack: per notificare automaticamente l’esito della pipeline al gruppo di sviluppo
+
 
 ## 2 Configurazione della Pipeline di CI/CD
 La pipeline di CI/CD è stata implementata utilizzando GitHub Actions, scelta che ha permesso di automatizzare l’intero processo di integrazione e delivery direttamente all’interno del repository GitHub.
@@ -32,6 +34,9 @@ esegue una scansione SAST (Static Application Security Testing) usando il plugin
 #### Dependency Check: 
 utilizza l’azione ufficiale OWASP Dependency-Check per effettuare un’analisi SCA (Software Composition Analysis) sulle librerie di terze parti usate dal progetto. Questa analisi identifica vulnerabilità note presenti nelle dipendenze esterne, contribuendo a prevenire rischi di sicurezza derivanti da componenti non aggiornati o insicuri.
 
+#### Notify (Slack Notification)
+Alla fine del processo, viene eseguito un job che invia una notifica automatica su Slack al team di sviluppo, indicando che la pipeline è stata completata con successo. L’URL del webhook è salvato in un secret GitHub (SLACK_WEBHOOK_URL) per garantire la sicurezza.
+
 
 ### Strumenti integrati per l’analisi
 SonarQube: integrato tramite plugin Maven, fornisce un’analisi statica approfondita del codice sorgente.
@@ -42,6 +47,7 @@ La pipeline viene eseguita automaticamente a ogni push sul repository. Grazie al
 
 Il caching delle dipendenze Maven e della cache di SonarQube migliora l’efficienza della pipeline, riducendo i tempi di esecuzione. L’upload degli artefatti consente di conservare e distribuire i risultati delle build e delle analisi.
 
+Slack: integrato tramite webhook e GitHub Actions, per comunicare automaticamente lo stato della pipeline al team.
 
 Artifact Archiving: per salvare gli artefatti di build (file WAR) e i report di analisi, permettendo un successivo download e revisione;
 
@@ -147,6 +153,22 @@ Questa fase esegue la scansione delle librerie di terze parti usate nel progetto
 Job: dependency-check
 
 Gli artefatti generati dalla build (come file .war) o dai report di scansione vengono salvati all’interno della pipeline, così da poter essere scaricati e analizzati successivamente, anche manualmente.
+
+###  Stage 7 – Notifica Slack
+
+ ```yaml
+- name: Invia notifica a Slack
+  env:
+    SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+  run: |
+    curl -X POST -H 'Content-type: application/json' --data "{
+      \"text\": \"✅ CI/CD completata per *onlinebookstore* su branch *${{ github.ref_name }}*.\nJobs completati: Setup DB, Build, SonarQube, Dependency Check.\nControlla i report se necessario.\"
+    }" $SLACK_WEBHOOK_URL
+
+ ```
+Job: notify
+
+Esegue una richiesta POST al webhook Slack per informare il gruppo che la pipeline è stata completata con successo.
 
 
 ## 3 Analisi delle vulnerabilità
