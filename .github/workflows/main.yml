@@ -162,3 +162,16 @@ jobs:
         with:
           name: Report-Dependency-Check
           path: reports
+
+  notify:
+    name: Notifica Slack
+    runs-on: ubuntu-latest
+    needs: [dependency-check, sonar]
+    steps:
+      - name: Invia notifica a Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data "{
+            \"text\": \"✅ CI/CD completata per *onlinebookstore* su branch *${{ github.ref_name }}*.\nJobs completati: Setup DB, Build, SonarQube, Dependency Check.\nControlla i report se necessario.\"
+          }" $SLACK_WEBHOOK_URL
