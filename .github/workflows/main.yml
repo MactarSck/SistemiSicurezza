@@ -33,7 +33,7 @@ jobs:
 
       - name: Inizializza database con dati casuali
         run: |
-          mysql -h127.0.0.1 -uroot -"$MYSQL_ROOT_PASSWORD" <<EOF
+          mysql -h127.0.0.1 -uroot -proot <<EOF
           USE onlinebookstore;
           CREATE TABLE IF NOT EXISTS books(
             barcode VARCHAR(100) PRIMARY KEY,
