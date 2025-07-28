@@ -1,4 +1,5 @@
 #  Progetto di Sicurezza dei Sistemi e Privacy AA 2024/2025
+Membri : Ragazzini Manuel - Seck Mactar ibrahima
 
 ## 1 Presentazione
 Questo progetto mira a realizzare una pipeline CI/CD sicura (SSDLC - Secure Software Development Life Cycle) applicata a un’applicazione Java. Il repository utilizzato è onlinebookstore, che simula un sistema di gestione per una libreria online.
@@ -172,7 +173,222 @@ Esegue una richiesta POST al webhook Slack per informare il gruppo che la pipeli
 
 
 ## 3 Analisi delle vulnerabilità
- 
+
+### Vulnerabilità rilevate
+<img width="1715" height="698" alt="image" src="https://github.com/user-attachments/assets/5055a501-01de-41c9-ab2a-b9f05ad59172" />
+
+
+### 1. mysql-connector-java-8.0.28.jar
+Descrizione: La libreria contiene una vulnerabilità nota in cui un utente remoto può manipolare la serializzazione causando deserializzazione insicura.
+
+Prova:
+
+cpe:2.3:a:oracle:mysql_connector:8.0.28:*:*:*:*:*:*:*
+
+CVE Count: 1
+Highest Severity: HIGH
+
+OWASP TOP 10: A08 – Software and Data Integrity Failures
+
+Impatti: Possibile RCE (Remote Code Execution) in ambienti vulnerabili con input non sanificato.
+
+Fix:
+
+Aggiorna a una versione più recente del connettore MySQL (≥ 8.0.33)
+Disabilita o filtra classi non attendibili nella deserializzazione
+
+
+### 2. postgresql-42.3.7.jar
+Descrizione: Il driver JDBC PostgreSQL contiene due CVE critici che possono permettere attacchi di SQL injection in particolari combinazioni di query dinamiche.
+
+Prova:
+
+cpe:2.3:a:postgresql:postgresql_jdbc_driver:42.3.7:*:*:*:*:*:*:*
+
+CVE Count: 2
+
+Highest Severity: CRITICAL
+
+OWASP TOP 10: A03 – Injection
+
+Impatti: Accesso non autorizzato a dati, modifica del database.
+
+Fix:
+
+Passa a versioni ≥ 42.6
+Evita concatenazioni dirette nelle query SQL.
+
+
+### 3. javax.servlet-api-3.1.0.jar
+
+Descrizione della vulnerabilità: Potenziale rischio legato alla gestione di richieste HTTP non sicure e attacchi tipo session fixation.
+
+Prova della rilevazione: cpe:2.3:a:oracle:java_se:3.1.0:*:*:*:*:*:*:*
+
+OWASP TOP 10: A05 – Security Misconfiguration, A07 – Identification and Authentication Failures
+
+Gravità e Impatti: Medio
+
+Fix del Codice: Aggiornare alla versione 4.x o superiore se compatibile
+
+
+
+### 4. commons-io:commons-io@2.3
+Descrizione: Una vulnerabilità nota di tipo path traversal che permette di leggere file arbitrari.
+
+Prova:
+
+cpe:2.3:a:apache:commons_io:2.3:*:*:*:*:*:*:*
+
+CVE Count: 2
+
+Highest Severity: MEDIUM
+
+OWASP TOP 10: A05 – Security Misconfiguration
+
+Impatti: Lettura di file sensibili (es. /etc/passwd)
+
+Fix:
+Aggiorna ad almeno commons-io 2.7
+Usa metodi sicuri per normalizzare e controllare i percorsi dei file.
+
+
+### 5. commons-codec:commons-codec@1.5
+Descrizione: Potenziali attacchi tramite encoding malformato, come bypass di autenticazione in alcune implementazioni.
+
+Prova:
+
+pkg:maven/commons-codec/commons-codec@1.5
+
+CVE Count: 2
+
+Highest Severity: MEDIUM
+
+OWASP TOP 10: A05 – Security Misconfiguration
+
+Impatti: Bypass di controlli logici e autenticazione
+
+Fix:
+
+Aggiorna a commons-codec ≥ 1.15
+
+Verifica la logica di decodifica nelle autenticazioni.
+
+
+### 6. memcached-session-manager-tc8@1.8.3
+Descrizione: Non critico, ma la libreria usa dipendenze deprecate che possono introdurre vulnerabilità indirette.
+
+Prova:
+
+cpe:2.3:a:memcached-session-manager-tc8:1.8.3:*:*:*:*:*:*:*
+
+OWASP TOP 10: A06 – Vulnerable and Outdated Components
+
+Impatti: Potenziali rischi da dipendenze transitive
+
+Fix:
+Passa a un gestore di sessioni supportato
+Minimizza la catena delle dipendenze.
+
+
+### 7. webapp-runner.jar (shaded: github.runner:8.0.30.2)
+Descrizione: Include una versione vulnerabile di webapp-runner contenente librerie con CVE aperti.
+
+Prova:
+
+pkg:maven/com.github.jsimone/webapp-runner@8.0.30.2
+
+CVE Count: 0 (ma componenti interni vulnerabili)
+
+OWASP TOP 10: A06 – Vulnerable and Outdated Components
+
+Impatti: Rischi di esecuzione codice o hijack di sessione
+
+Fix:
+Aggiorna webapp-runner o considera il deployment su un contenitore aggiornato come Tomcat 10+.
+
+
+###  8. checker-qual-3.5.0.jar
+
+Descrizione della vulnerabilità: Nessuna vulnerabilità nota identificata per questa versione.
+
+Prova della rilevazione: Evidenza rilevata nella tabella, ma CVE Count = 0
+
+OWASP TOP 10: Non applicabile
+
+Gravità e Impatti: Nessuna
+
+Fix del Codice: Nessuna azione richiesta
+
+### .9 protobuf-java-3.11.4.jar
+Descrizione:
+Alcune versioni di Protobuf sono vulnerabili a DOS (Denial of Service) causato da input malevolo che genera parsing pesanti e cicli infiniti.
+
+Prova:
+
+pkg:maven/com.google.protobuf/protobuf-java@3.11.4
+
+CPE:
+
+cpe:2.3:a:google:protobuf-java:3.11.4:*:*:*:*:*:*:*
+
+cpe:2.3:a:protobuf:protobuf:3.11.4:*:*:*:*:*:*:*
+
+5 CVE identificate
+
+OWASP TOP 10:
+
+A05 – Security Misconfiguration
+
+A09 – Security Logging and Monitoring Failures
+
+Gravità: HIGH
+
+Impatti:
+
+Arresto del sistema
+
+Elevato uso di risorse
+
+Potenziale vettore per attacchi più gravi
+
+Fix:
+Aggiorna a protobuf-java 3.25+
+Valida gli input prima di deserializzare
+Imposta limiti alla dimensione dei messaggi
+
+
+### 10. netty-netty-3.5.5.Final (shaded in webapp-runner.jar)
+Descrizione:
+La versione 3.5.5 di Netty contiene problemi legati alla gestione del buffer, codifica dei messaggi e gestione dei canali, con possibilità di DOS o di bypass di sicurezza.
+
+Prova:
+
+pkg:maven/io.netty/netty@3.5.5.Final
+
+Incluso tramite: webapp-runner.jar (shaded)
+
+OWASP TOP 10:
+
+A05 – Security Misconfiguration
+
+A08 – Software and Data Integrity Failures
+
+Gravità: MEDIUM – HIGH
+
+Impatti:
+
+Attacchi DOS
+
+Memory leaks
+
+Potenziale esecuzione non sicura di payload
+
+Fix:
+
+Aggiorna a Netty 4.1.100.Final o superiore
+
+Verifica se webapp-runner può essere sostituito o aggiornato con una versione che non include componenti vulnerabili
 
 
 
