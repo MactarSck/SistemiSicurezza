@@ -17,7 +17,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
-				<version>2.3</version>
+				<version>3.6.0</version> <!-- Aggiornato plugin -->
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -29,7 +29,7 @@
 								<artifactItem>
 									<groupId>com.github.jsimone</groupId>
 									<artifactId>webapp-runner</artifactId>
-									<version>8.0.30.2</version>
+									<version>9.0.62.0</version> <!-- Aggiornato versione -->
 									<destFileName>webapp-runner.jar</destFileName>
 								</artifactItem>
 							</artifactItems>
@@ -47,7 +47,7 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-war-plugin</artifactId>
-				<version>3.2.1</version>
+				<version>3.3.2</version> <!-- Aggiornato plugin -->
 				<configuration>
 					<warSourceDirectory>WebContent</warSourceDirectory>
 				</configuration>
@@ -59,21 +59,20 @@
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>42.3.7</version>
+			<version>42.6.0</version> <!-- Aggiornata versione -->
 		</dependency>
-
 
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
-			<version>8.0.28</version>
+			<version>8.0.33</version> <!-- Aggiornata versione -->
 		</dependency>
-
 
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
-			<version>3.1.0</version>
+			<version>4.0.1</version> <!-- Aggiornata versione -->
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 </project>
